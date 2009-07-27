@@ -11,7 +11,7 @@
 %    * Redistributions in binary form must reproduce the above copyright
 %      notice, this list of conditions and the following disclaimer in the
 %      documentation and/or other materials provided with the distribution.
-%    * Neither the name of ProSpec nor the names of its
+%    * Neither the name of the <ORGANIZATION> nor the names of its
 %      contributors may be used to endorse or promote products derived from
 %      this software without specific prior written permission.
 %
@@ -75,17 +75,18 @@ foreach_spec(Specs, Passed/Failed):-
  
 foreach_spec([], Passed/Failed, Passed/Failed):-!. 
 foreach_spec([Spec_Desc/Spec|Rest], Passed/Failed, NewPassed/NewFailed):-
-    (
-	setup_spec, call(Spec), !,
-        NextPassed is Passed + 1,
-        NextFailed is Failed,
-        write('...'), write(Spec_Desc), write(' (passed)'), nl
-    ;
-        NextFailed is Failed + 1,
-        NextPassed is Passed,
-        write('...'), write(Spec_Desc), write(' (FAILED)'), nl
-    ),
-    foreach_spec(Rest, NextPassed/NextFailed, NewPassed/NewFailed). 
+	write('...'), write(Spec_Desc),     
+	(
+		setup_spec, call(Spec), !,
+	        NextPassed is Passed + 1,
+	        NextFailed is Failed,
+	        write(' (passed)'), nl
+	;
+        	NextFailed is Failed + 1,
+        	NextPassed is Passed,
+        	write(' (FAILED)'), nl
+	),
+    	foreach_spec(Rest, NextPassed/NextFailed, NewPassed/NewFailed). 
  
 write_specs_summary(Passed/0) :- !,
     nl,
@@ -114,11 +115,11 @@ run_spec(Spec) :-
 
 % Asserts
 assert_that(Actual, equals:Expected) :-
-	Actual \= Expected, nl, write('Expected '), write(Expected), write(' equal to '), write(Actual), nl, fail;
+	Actual \= Expected, !, nl, write('\tExpected '), write(Expected), write(' equal to '), write(Actual), nl, fail;
 	Actual == Expected.
 
 assert_that(Actual, not_equals:Expected) :-
-	Actual == Expected, nl, write('Expected '), write(Expected), write(' not equal to '), write(Actual), nl, fail;
+	Actual == Expected, nl, write('\tExpected '), write(Expected), write(' not equal to '), write(Actual), nl, fail;
 	Actual \= Expected.
 	
 assert_that(Actual, is_true) :-
@@ -126,26 +127,26 @@ assert_that(Actual, is_true) :-
 	nl, write('Expected '), write(Actual), write(' to be true '), nl, fail.
 	
 assert_that(Actual, is_false) :-
-	Actual, !, nl, write('Expected '), write(Actual), write(' to be false '), nl, fail;
+	Actual, !, nl, write('\tExpected '), write(Actual), write(' to be false '), nl, fail;
 	true.
 	
 assert_that(Actual, fails) :- 
 	assert_that(Actual, is_false).
 	
 assert_that(Actual, is_empty) :-
-	Actual \= [], nl, write('Expected '), write(Actual), write(' to be empty '), nl, fail;
+	Actual \= [], nl, write('\tExpected '), write(Actual), write(' to be empty '), nl, fail;
 	Actual == [].
 
 assert_that(Actual, has_member:Member) :-
-	not(member(Member, Actual)), nl, write('Expected '), write(Actual), write(' to has member '), write(Member), nl, fail;
+	not(member(Member, Actual)), nl, write('\tExpected '), write(Actual), write(' to has member '), write(Member), nl, fail;
 	member(Member, Actual).
 
 assert_that(Actual, has_no_member:Member) :-
-	member(Member, Actual), nl, write('Expected '), write(Actual), write(' to has no member '), write(Member), nl, fail;
+	member(Member, Actual), nl, write('\tExpected '), write(Actual), write(' to has no member '), write(Member), nl, fail;
 	not(member(Member, Actual)).
 
 assert_that(Actual, contains_all:Sublist) :-
-	not(contains_all(Actual, Sublist)), nl, write('Expected '), write(Actual), write(' to contain all members of '), write(Sublist), nl, fail;
+	not(contains_all(Actual, Sublist)), nl, write('\tExpected '), write(Actual), write(' to contain all members of '), write(Sublist), nl, fail;
 	contains_all(Actual, Sublist).
 
 contains_all(_, []) :- true.

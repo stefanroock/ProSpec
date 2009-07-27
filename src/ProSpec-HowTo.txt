@@ -1,0 +1,120 @@
+ProSpec is a RSpec (http://rspec.info) inspired BDD framework for Prolog. I created it during my experiments with Prolog. I suspect that I at least some strange things. I would be pleased by any hints on how to improve ProSpec or the examples. Send me an E-Mail: stefan@stefanroock.de
+
+Every ProSpec specification starts with describe(FixtureName) and ends with end_describe. Within these two predicates every specification is declared with it(SpecName/SpecCode).
+
+We start with a very simple BDD spec for bowling. 
+
+bowling_spec.pro:
+
+
+:- ensure_loaded('ProSpec.pro').
+:- ensure_loaded('bowling.pro').
+
+:- describe('Bowling'). 
+
+generate_bowling_hits(_, 0).
+generate_bowling_hits(Hit, Count) :- bowling_hit(Hit), Count2 is Count-1, generate_bowling_hits(Hit, Count2).
+
+:- it('should score 0 for gutter game'/(
+	generate_bowling_hits(0, 20),
+	bowling_score(Score),
+	assert_that(Score, equals:0)
+)). 
+
+:- end_describe.
+
+
+
+bowling.pro:
+
+bowling_hit(Count).
+bowling_score(0).
+	
+With "run_specs." the BDD spec runs:
+
+Bowling...
+...should score 0 for gutter game (passed)
+Passed:1
+
+1 specs passed
+
+In the next step with specify the next behaviour increment:
+
+bowling_spec.pro:
+
+:- ensure_loaded('ProSpec.pro').
+:- ensure_loaded('bowling.pro').
+
+:- describe('Bowling'). 
+
+generate_bowling_hits(_, 0).
+generate_bowling_hits(Hit, Count) :- bowling_hit(Hit), Count2 is Count - 1, generate_bowling_hits(Hit, Count2).
+
+:- it('should score 0 for gutter game'/(
+	generate_bowling_hits(0, 20),
+	bowling_score(Score),
+	assert_that(Score, equals:0)
+)). 
+
+:- it('should sum hits of a game'/(
+	generate_bowling_hits(2, 20),
+	bowling_score(Score),
+	assert_that(Score, equals:40)
+)). 
+
+:- end_describe.
+
+"run_specs." shows that this spec fails:
+
+
+Bowling...
+...should score 0 for gutter game (passed)
+...should sum hits of a game
+	Expected 40 equal to 0
+
+We extend the bowling implementation:
+
+bowling_hit(Count) :- assert(bowling_hit_def(Count)).
+
+bowling_score(Score) :- 
+	findall(Hit, bowling_hit_def(Hit), Hits),
+	sumlist(Hits, Score).
+
+Now the spec succeeds, but only one. The reason is the growing number 
+of "bowling_hit_def" facts. To avoid this problem ProSpec offers "setup_spec".
+
+bowling_spec.pro:
+
+:- ensure_loaded('ProSpec.pro').
+:- ensure_loaded('bowling.pro').
+
+:- describe('Bowling'). 
+
+generate_bowling_hits(_, 0).
+generate_bowling_hits(Hit, Count) :- bowling_hit(Hit), Count2 is Count - 1, generate_bowling_hits(Hit, Count2).
+
+:- dynamic(setup_spec/0).
+
+setup_spec :- 
+	retractall(bowling_hit_def(_)).
+
+:- it('should score 0 for gutter game'/(
+	generate_bowling_hits(0, 20),
+	bowling_score(Score),
+	assert_that(Score, equals:0)
+)). 
+
+:- it('should sum hits of a game'/(
+	generate_bowling_hits(2, 20),
+	bowling_score(Score),
+	assert_that(Score, equals:40)
+)). 
+
+:- end_describe.
+
+Now the spec succeeds every time. 
+
+There is a bunch of other assert_that predicates in ProSpec.pro. Have a look
+and proceed.
+
+
